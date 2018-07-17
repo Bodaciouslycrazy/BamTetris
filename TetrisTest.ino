@@ -65,72 +65,72 @@
 #define GAME_HEIGHT 24
 
 
-const uint8_t MINO_O[] = {
+const PROGMEM uint8_t MINO_O[] = {
 	0, 0, 0, 0,
 	0, 1, 1, 0,
 	0, 1, 1, 0,
 	0, 0, 0, 0
 };
 
-const uint8_t MINO_I[] = {
+const PROGMEM uint8_t MINO_I[] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	1, 1, 1, 1,
 	0, 0, 0, 0
 };
 
-const uint8_t MINO_L[] = {
+const PROGMEM uint8_t MINO_L[] = {
 	0, 0, 0,
 	1, 1, 1,
 	0, 0, 1
 };
 
-const uint8_t MINO_J[] = {
+const PROGMEM uint8_t MINO_J[] = {
 	0, 0, 0,
 	1, 1, 1,
 	1, 0, 0
 };
 
-const uint8_t MINO_S[] = {
+const PROGMEM uint8_t MINO_S[] = {
 	0, 0, 0,
 	1, 1, 0,
 	0, 1, 1
 };
 
-const uint8_t MINO_Z[] = {
+const PROGMEM uint8_t MINO_Z[] = {
 	0, 0, 0,
 	0, 1, 1,
 	1, 1, 0
 };
 
-const uint8_t MINO_T[] = {
+const PROGMEM uint8_t MINO_T[] = {
 	0, 0, 0,
 	1, 1, 1,
 	0, 1, 0
 };
 
-const int KICK_CW_X[] = {
+const PROGMEM int KICK_CW_X[] = {
 	0, -1, -1, 0, -1,
 	0, 1, 1, 0, 1,
 	0, 1, 1, 0, 1,
 	0, -1, -1, 0, -1 
 };
 
-const int KICK_CW_Y[] = {
+const PROGMEM int KICK_CW_Y[] = {
 	0, 0, 1, -2, -2,
 	0, 0, -1, 2, 2,
 	0, 0, 1, -2, -2,
 	0, 0, -1, 2, 2
 };
 
-const int KICK_CW_XI[] = {
+const PROGMEM int KICK_CW_XI[] = {
 	0, -2, 1, -2, 1,
 	0, -1, 2, -1, 2,
 	0, 2, -1, 2, -1,
 	0, 1, -2, 1, -2
 };
 
-const int KICK_CW_YI[] = {
+const PROGMEM int KICK_CW_YI[] = {
 	0, 0, 0, -1, 2,
 	0, 0, 0, 2, -1,
 	0, 0, 0, 1, -2,
@@ -342,10 +342,12 @@ void loop() {
 			
 			for(int i = 0; i < 5; i++)
 			{
-				if( !kickTest( KickDataPointerX[kickMain + i], KickDataPointerY[kickMain + i]) )
+				int testX = pgm_read_word_near( KickDataPointerX + kickMain + i );
+				int testY = pgm_read_word_near( KickDataPointerY + kickMain + i );
+				if( !kickTest( testX, testY) )
 				{
-					FallingX += KickDataPointerX[kickMain + i];
-					FallingY += KickDataPointerY[kickMain + i];
+					FallingX += testX;
+					FallingY += testY;
 					kickComplete = true;
 					break;
 				}
@@ -387,10 +389,13 @@ void loop() {
 
 			for(int i = 0; i < 5; i++)
 			{
-				if( !kickTest( -1 * KickDataPointerX[kickMain + i], -1 * KickDataPointerY[kickMain + i]) )
+				int testX = -1 * pgm_read_word_near( KickDataPointerX + kickMain + i );
+				int testY = -1 * pgm_read_word_near( KickDataPointerY + kickMain + i );
+				
+				if( !kickTest( testX, testY) )
 				{
-					FallingX += -1 * KickDataPointerX[kickMain + i];
-					FallingY += -1 * KickDataPointerY[kickMain + i];
+					FallingX += testX;
+					FallingY += testY;
 					kickComplete = true;
 					break;
 				}
@@ -773,7 +778,7 @@ void drawExtraPiece(int xpos, int ypos, int num)
 	{
 		for(int y = 0; y < minoSize; y++)
 		{
-			screen.drawPixel(ypos + y, xpos + x, mino[minoSize * y + x]);
+			screen.drawPixel(ypos + y, xpos + x, pgm_read_byte_near( mino + (minoSize * y + x) ));
 		}
 	}
 
@@ -1014,7 +1019,7 @@ void copyToFalling(uint8_t *mino)
 {
 	for(int i = 0; i < FallingSize * FallingSize; i++)
 	{
-		Falling[i] = mino[i];
+		Falling[i] = pgm_read_byte_near( mino + i );
 	}
 }
 
