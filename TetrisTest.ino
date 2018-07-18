@@ -53,7 +53,6 @@
 #define LED_DATA 8
 #define LED_WR 9
 #define LED_CS 10
-int LED_BRIGHTNESS = 0;
 
 
 //***********************************
@@ -64,6 +63,8 @@ int LED_BRIGHTNESS = 0;
 #define GAME_WIDTH 10
 #define GAME_HEIGHT 24
 
+#define EEPROM_RAND_SEED 0
+#define EEPROM_BRIGHTNESS 4
 
 const PROGMEM uint8_t MINO_O[] = {
 	0, 0, 0, 0,
@@ -214,9 +215,9 @@ int FastFallDelay = FAST_FALL_DELAY;
 void setup() {
 	
 	//Use random seed from perminant storage.
-	randomSeed( EEPROMReadLong(0) );
+	randomSeed( EEPROMReadLong( EEPROM_RAND_SEED ) );
 	//Write new random seed to perminant storage. 
-	EEPROMWriteLong( 0, random( 2147483647 ));
+	EEPROMWriteLong( EEPROM_RAND_SEED, random( 2147483647 ));
 
 
 	//Set pin mode for all button inputs.
@@ -233,7 +234,7 @@ void setup() {
 	//initialize screen.
 	screen.begin(ADA_HT1632_COMMON_16NMOS);
 	screen.clearScreen();
-	screen.setBrightness(LED_BRIGHTNESS);
+	screen.setBrightness( EEPROM.read(EEPROM_BRIGHTNESS) );
 
 	//border only needs to be drawn once.
 	drawBorder();
@@ -812,22 +813,26 @@ void drawExtraPiece(int xpos, int ypos, int num)
 
 void increaseBrightness()
 {
-	LED_BRIGHTNESS++;
+	uint8_t bright = EEPROM.read(EEPROM_BRIGHTNESS) + 1;
+	
+	if(bright >= 16)
+		bright = 15;
 
-	if(LED_BRIGHTNESS >= 16)
-		LED_BRIGHTNESS--;
+	screen.setBrightness(bright);
 
-	screen.setBrightness(LED_BRIGHTNESS);
+	EEPROM.write(EEPROM_BRIGHTNESS, bright);
 }
 
 void decreaseBrightness()
 {
-	LED_BRIGHTNESS--;
+	uint8_t bright = EEPROM.read(EEPROM_BRIGHTNESS) - 1;
+	
+	if(bright >= 16)
+		bright = 0;
 
-	if(LED_BRIGHTNESS < 0)
-		LED_BRIGHTNESS++;
+	screen.setBrightness(bright);
 
-	screen.setBrightness(LED_BRIGHTNESS);
+	EEPROM.write(EEPROM_BRIGHTNESS, bright);
 }
 
 /*
