@@ -53,7 +53,7 @@
 #define LED_DATA 8
 #define LED_WR 9
 #define LED_CS 10
-#define LED_BRIGHTNESS 0
+int LED_BRIGHTNESS = 0;
 
 
 //***********************************
@@ -349,6 +349,7 @@ void loop() {
 					FallingX += testX;
 					FallingY += testY;
 					kickComplete = true;
+					TimeNotMoving = 0;
 					break;
 				}
 			}
@@ -356,7 +357,8 @@ void loop() {
 			if(!kickComplete) //Kick failed. Rotate back to original orientation.
 			{
 				rotateCCW();
-			}	
+			}
+			
 		}
 		
 	}
@@ -397,6 +399,7 @@ void loop() {
 					FallingX += testX;
 					FallingY += testY;
 					kickComplete = true;
+					TimeNotMoving = 0;
 					break;
 				}
 			}
@@ -413,7 +416,7 @@ void loop() {
 	//		Holding mechanic
 	//********************************************
 	
-	if(getButtonPressed(BTN_UP) && !FallingSwapped)
+	if(getButtonPressed(BTN_UP) && !getButtonDown(BTN_STICK) && !FallingSwapped)
 	{
 		FallingSwapped = true;
 		
@@ -472,7 +475,7 @@ void loop() {
 
 
 	// Teleport down if you press the hard drop button.
-	if(getButtonPressed(BTN_DOWN))
+	if(getButtonPressed(BTN_DOWN) && !getButtonDown(BTN_STICK))
 	{
 		while( !collideFalling() )
 		{
@@ -487,11 +490,20 @@ void loop() {
 		spawnMino();
 	}
 
-
 	//When a tetrimino was stamped, check to clear lines.
 	if(doClear)
 		clearLines(clearY);
 
+
+	//Change brightness settings?
+	if(getButtonDown(BTN_STICK) && getButtonPressed(BTN_UP))
+	{
+		increaseBrightness();
+	}
+	else if(getButtonDown(BTN_STICK) && getButtonPressed(BTN_DOWN))
+	{
+		decreaseBrightness();
+	}
 	
 	//Always finish the frame by drawing.
 	draw();
@@ -699,7 +711,7 @@ void drawBoard()
 	{
 		for(int y = 0; y < GAME_HEIGHT; y++)
 		{
-			screen.drawPixel(y,x, getBlock(x,y));
+			screen.drawPixel(y,x + 1, getBlock(x,y));
 		}
 	}
 }
@@ -715,7 +727,8 @@ void drawBorder()
 
 	for(int y = 0; y < GAME_HEIGHT; y++)
 	{
-		screen.setPixel(y, GAME_WIDTH);
+		screen.setPixel(y, GAME_WIDTH + 1);
+		screen.setPixel(y, 0);
 	}
 }
 
@@ -728,7 +741,7 @@ void drawFalling()
 			if(Falling[FallingSize * y + x] > 0)
 			{
 				//Don't draw empty blocks. They are supposed to be transparent.
-				screen.setPixel( y + FallingY, x + FallingX );
+				screen.setPixel( y + FallingY, x + FallingX + 1);
 			}
 		}
 	}
@@ -795,6 +808,26 @@ void drawExtraPiece(int xpos, int ypos, int num)
 			screen.drawPixel(ypos + 3, xpos + x, 0);
 		}
 	}
+}
+
+void increaseBrightness()
+{
+	LED_BRIGHTNESS++;
+
+	if(LED_BRIGHTNESS >= 16)
+		LED_BRIGHTNESS--;
+
+	screen.setBrightness(LED_BRIGHTNESS);
+}
+
+void decreaseBrightness()
+{
+	LED_BRIGHTNESS--;
+
+	if(LED_BRIGHTNESS < 0)
+		LED_BRIGHTNESS++;
+
+	screen.setBrightness(LED_BRIGHTNESS);
 }
 
 /*
