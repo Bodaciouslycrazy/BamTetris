@@ -213,6 +213,7 @@ int FastFallDelay = FAST_FALL_DELAY;
 //***********************************************************************************************************
 
 void setup() {
+	//Serial.begin(9600);
 	
 	//Use random seed from perminant storage.
 	randomSeed( EEPROMReadLong( EEPROM_RAND_SEED ) );
@@ -245,7 +246,7 @@ void setup() {
 	generateBag(0);
 	generateBag(8);
 	
-	spawnMino( random(0, 7) );
+	spawnMino();
 }
 
 
@@ -1007,7 +1008,7 @@ void spawnMino()
 }
 
 void spawnMino(int mino)
-{
+{	
 	FallingX = 3;
 	FallingY = 20;
 	FallingRotation = 0;
@@ -1077,6 +1078,10 @@ void resetBoard()
 	}
 
 	Holding = false;
+	
+	BagPosition = 0;
+	generateBag(0);
+	generateBag(8);
 }
 
 //Generates 8 pice indecies in the bag, starting at index "start"
@@ -1091,12 +1096,28 @@ void generateBag(int start)
 	{
 		int randIndex = random(0, 7-i);
 		Bag[start + i] = sortedBag[randIndex];
-		sortedBag[randIndex] = sortedBag[6-i];
-	}
 
+		//swap the value we just grabbed, and put it in an index we won't use again.
+		//Eliminates the chance of a piece getting picked twice.
+		uint8_t temp = sortedBag[randIndex];
+		sortedBag[randIndex] = sortedBag[6-i];
+		sortedBag[6-i] = temp;
+	}
+	
 	//put one random piece in, just for kicks.
 	Bag[start + 7] = random(0,7);
 }
+
+/*
+void printArr(uint8_t *arr, int len)
+{
+	for(int i = 0; i < len; i++)
+	{
+		Serial.print( arr[i] );
+		Serial.print(" ");
+	}
+}
+*/
 
 //****************************************************************
 //                      EEPROM STUFF
